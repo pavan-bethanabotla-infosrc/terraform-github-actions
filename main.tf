@@ -28,7 +28,7 @@ provider "aws" {
 
 # --- Terraform Cloud Backend Configuration ---
 terraform {
-  required_version = "~> 1.8.0" # Use a recent Terraform version
+  required_version = "~> 1.11.4" # Use a recent Terraform version
 
   required_providers {
     aws = {
