@@ -1,5 +1,5 @@
 terraform {
-  required_version = "~> 1.8.0" # Or your desired Terraform CLI version
+  required_version = "~> 1.11.4" # Or your desired Terraform CLI version
 
   required_providers {
     azurerm = {
