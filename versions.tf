@@ -9,15 +9,7 @@ terraform {
     # Add other required providers here
   }
 
-  cloud {
-    organization = "terraform-realtime"
-
-    workspaces {
-      name = "Jenkins-Zero-To-Hero"
-    }
-  }
-}
-
+  
 # You can also define provider configurations here, e.g.:
 # provider "azurerm" {
 #   features {}
