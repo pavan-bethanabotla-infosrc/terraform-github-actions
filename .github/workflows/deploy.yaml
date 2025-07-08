@@ -1,0 +1,73 @@
+# .github/workflows/deploy.yml
+name: Deploy S3 Website via Terraform Cloud
+
+on:
+  push:
+    branches:
+      - master # Trigger on pushes to the main branch
+  pull_request:
+    branches:
+      - master # Trigger on pull requests to the main branch
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  terraform_plan_and_apply:
+    runs-on: ubuntu-latest
+    environment: YOUR_TERRAFORM_CLOUD_WORKSPACE_ENVIRONMENT # Optional: If you use GitHub Environments for approvals
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+       # --- ADD THESE LINES HERE FOR AWS CREDENTIALS ---
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1 # Make sure this matches your S3 bucket region, or dynamically set it
+      # --- END ADDITION ---
+
+      - name: Setup Terraform CLI
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.8.0 # Match your TFC version or use a compatible one
+          cli_config_credentials_token: ${{ secrets.TFE_TOKEN }} # TFC API Token
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan # Save the plan
+
+      - name: Check Terraform Plan Results
+        env:
+          PLAN: "${{ steps.plan.outputs.stdout }}" # The full plan output
+        run: |
+          # This step helps check if there are actual changes
+          if echo "$PLAN" | grep -q "No changes."; then
+            echo "::notice file=main.tf::Terraform plan found no changes. Skipping apply."
+            echo "::set-output name=has_changes::false"
+          else
+            echo "::notice file=main.tf::Terraform plan found changes. Proceeding with apply."
+            echo "::set-output name=has_changes::true"
+          fi
+        id: plan_check
+
+      # Manual approval (optional, but good for CD)
+      - name: Await Manual Approval
+        if: github.event_name == 'pull_request' && steps.plan_check.outputs.has_changes == 'true'
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ github.TOKEN }} # GitHub Token for API access
+          approvers: pavan-bethanabotla-infosrc # Replace with GitHub username(s) or team(s)
+          minimum-approvals: 1
+          issue-title: "Approve Terraform Apply for ${{ github.ref }}"
+          issue-body: "A Terraform plan is ready for review. Click 'Approve' to proceed with apply."
+          exclude-workflow-initiator: false
+
+      - name: Terraform Apply
+        if: always() && (github.event_name != 'pull_request' || steps.plan_check.outputs.has_changes == 'true') # Only apply if there were changes or not a PR
+        run: terraform apply -auto-approve tfplan
