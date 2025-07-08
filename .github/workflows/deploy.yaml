@@ -19,6 +19,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set AWS_EC2_METADATA_DISABLED for all subsequent steps
+        run: echo "AWS_EC2_METADATA_DISABLED=true" >> $GITHUB_ENV
+        # This writes the environment variable to a special file that GitHub Actions
+        # reads and applies to all *subsequent* steps in the same job.
+        # This is generally more reliable for critical environment variables.
+
        # --- ADD THESE LINES HERE FOR AWS CREDENTIALS ---
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -28,14 +34,7 @@ jobs:
           aws-region: us-east-1 # Make sure this matches your S3 bucket region, or dynamically set it
       # --- END ADDITION ---
       
-      - name: Verify AWS Credentials Loaded by AWS CLI
-        # This step MUST succeed and output your IAM User/Role ARN
-        run: aws sts get-caller-identity
-        env:
-          # Ensure AWS_EC2_METADATA_DISABLED is set even for this check
-          AWS_EC2_METADATA_DISABLED: "true" # Keep this here
-          # You typically don't need AWS_PROFILE here, as aws-actions/configure-aws-credentials sets direct env vars
-          
+      
       - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v2
         with:
