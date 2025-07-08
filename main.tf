@@ -119,9 +119,9 @@ resource "aws_s3_bucket_object" "index_html" {
 # Or use a local-exec provisioner with aws s3 sync or a Terraform module for S3 sync.
 # For a simple example, let's keep it to index.html.
 
-output "website_domain" {
+output "website_url" {
   description = "The S3 website endpoint"
-  value       = aws_s3_bucket.website_bucket.website_domain
+  value       = aws_s3_bucket.website_bucket.bucket_regional_domain_name
 }
 
 output "bucket_name" {
