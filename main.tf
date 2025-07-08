@@ -108,10 +108,10 @@ resource "aws_s3_bucket_policy" "website_bucket_policy" {
 resource "aws_s3_bucket_object" "index_html" {
   bucket       = aws_s3_bucket.website_bucket.bucket
   key       = "index.html"
-  source       = "C://terraform//terraform-project//.terraform//providers//registry.terraform.io//hashicorp//index.html" # Path to your local index.html
+  source       = "index.html" # Path to your local index.html
   content_type = "text/html"
   acl          = "public-read"
-  etag         = filemd5("C://terraform//terraform-project//.terraform//providers//registry.terraform.io//hashicorp//index.html") # Forces re-upload on file change
+  etag         = filemd5("index.html") # Forces re-upload on file change
 }
 
 
