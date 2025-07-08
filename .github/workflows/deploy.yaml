@@ -14,7 +14,13 @@ jobs:
   terraform_plan_and_apply:
     runs-on: ubuntu-latest
     environment: YOUR_TERRAFORM_CLOUD_WORKSPACE_ENVIRONMENT # Optional: If you use GitHub Environments for approvals
-
+    
+    env:
+      AWS_EC2_METADATA_DISABLED: true # Disable EC2 metadata service for security reasons
+      # Pass GitHub Secrets to Terraform variables using TF_VAR_ prefix
+      TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      TF_VAR_aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
