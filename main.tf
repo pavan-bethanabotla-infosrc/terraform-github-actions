@@ -105,7 +105,7 @@ resource "aws_s3_bucket_policy" "website_bucket_policy" {
 
 
 # Upload local application files to S3
-resource "aws_s3_bucket_object" "index_html" {
+resource "aws_s3_object" "index_html" {
   bucket       = aws_s3_bucket.website_bucket.bucket
   key       = "index.html"
   source       = "index.html" # Path to your local index.html
