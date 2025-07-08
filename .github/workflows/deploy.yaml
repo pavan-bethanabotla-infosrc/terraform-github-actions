@@ -27,7 +27,15 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1 # Make sure this matches your S3 bucket region, or dynamically set it
       # --- END ADDITION ---
-
+      
+      - name: Verify AWS Credentials Loaded by AWS CLI
+        # This step MUST succeed and output your IAM User/Role ARN
+        run: aws sts get-caller-identity
+        env:
+          # Ensure AWS_EC2_METADATA_DISABLED is set even for this check
+          AWS_EC2_METADATA_DISABLED: "true" # Keep this here
+          # You typically don't need AWS_PROFILE here, as aws-actions/configure-aws-credentials sets direct env vars
+          
       - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v2
         with:
