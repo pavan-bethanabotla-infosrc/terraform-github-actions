@@ -31,7 +31,7 @@ jobs:
       - name: Setup Terraform CLI
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.8.0 # Match your TFC version or use a compatible one
+          terraform_version: 1.11.4 # Match your TFC version or use a compatible one
           cli_config_credentials_token: ${{ secrets.TFE_TOKEN }} # TFC API Token
 
       - name: Terraform Init
