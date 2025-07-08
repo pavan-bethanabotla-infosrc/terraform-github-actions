@@ -1,28 +1,9 @@
 
-
-
-
-# Azure Provider
-
-
-
-/* provider "azurerm" {
-  subscription_id = "88892b4f-5dd9-4cb9-8465-216794938557"    
-  features {}
-}
-
-# Create a resource group
-
-resource "azurerm_resource_group" "example" {
-  name     = "terraform-azure-test-rg"
-  location = "Central India" 
-}
- */
-
-
  # Configure the AWS provider
 provider "aws" {
   region = "us-east-1" # Choose your desired AWS region
+  access_key = var.aws_access_key_id
+  secret_key = var.aws_secret_access_key
 }
 
 
