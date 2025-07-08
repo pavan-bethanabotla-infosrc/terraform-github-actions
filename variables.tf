@@ -1,5 +1,5 @@
 # variables.tf
-/* 
+
 variable "aws_access_key_id" {
   description = "AWS Access Key ID for authentication."
   type        = string
