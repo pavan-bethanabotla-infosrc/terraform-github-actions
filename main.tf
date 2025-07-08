@@ -121,7 +121,7 @@ resource "aws_s3_bucket_object" "index_html" {
 
 output "website_domain" {
   description = "The S3 website endpoint"
-  value       = aws_s3_bucket.website_bucket.website_endpoint
+  value       = aws_s3_bucket.website_bucket.website_domain
 }
 
 output "bucket_name" {
