@@ -58,24 +58,22 @@ jobs:
         
 
       - name: Check Terraform Plan Results
-        id: plan_check
-        # This step checks the plan output to see if there are any changes
+        id: plan_check # This ID is correct for your conditional logic
+        # No 'env:' block for PLAN here, as we are getting it directly from `terraform show`
 
-        #env:
-        #  PLAN: "${{ steps.plan.outputs.stdout }}" # The full plan output
-        run: 
-          # This step helps check if there are actual changes
+        run: |
           # Use 'terraform show' to get the human-readable output from the binary plan file
           PLAN_OUTPUT=$(terraform show -no-color ${{ env.PLAN_FILENAME }})
 
+          # --- Corrected Multi-line if-else-fi structure ---
           if echo "$PLAN_OUTPUT" | grep -q "No changes."; then
             echo "::notice file=main.tf::Terraform plan found no changes. Skipping apply."
-            echo "has_changes=false" >>  $GITHUB_OUTPUT 
-          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT # Correct syntax for setting output
+          else 
             echo "::notice file=main.tf::Terraform plan found changes. Proceeding with apply."
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-          fi
-        
+            echo "has_changes=true" >> $GITHUB_OUTPUT # Correct syntax for setting output
+          fi 
+
         # Make sure `terraform show` output is not too large for `PLAN_OUTPUT` var if it's huge.
         # For most static sites, it will be fine.
 
