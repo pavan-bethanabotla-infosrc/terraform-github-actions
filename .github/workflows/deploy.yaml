@@ -127,7 +127,7 @@ jobs:
 
           # Write the collected content to the markdown file
           # IMPORTANT: This creates/overwrites plan_summary.md
-          echo "$SUMMARY_CONTENT" > plan_summary.md
+          echo -e "$SUMMARY_CONTENT" > plan_summary.md
 
           # You no longer need to write to GITHUB_STEP_SUMMARY directly here,
           # as the next 'Update Workflow Run Summary with Plan' step will do it.
