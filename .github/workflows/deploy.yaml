@@ -139,5 +139,5 @@ jobs:
         # Apply only if:
         # 1. The event is NOT a pull request (e.g., it's a push to main) AND
         # 2. The plan detected actual changes
-        if: github.event_name != 'pull_request' || steps.plan_check.outputs.has_changes == 'true' # Only apply if there were changes or not a PR
+        if: github.ref == 'refs/heads/main' && success() || steps.plan_check.outputs.has_changes == 'true' # Only apply if there were changes or not a PR
         run: terraform apply -auto-approve ${{ env.PLAN_FILENAME }} # Apply the saved plan file
