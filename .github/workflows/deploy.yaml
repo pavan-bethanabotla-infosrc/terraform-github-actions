@@ -109,16 +109,23 @@ jobs:
             SUMMARY_CONTENT+="| Action | Resource |\n"
             SUMMARY_CONTENT+="|--------|----------|\n"
 
-            # Extract and format resource changes
-            CHANGES=$(echo "$TERRAFORM_PLAN_OUTPUT" | grep -E '^\S+ \S+\.\S+ (will be|must be|has been)' | \
-            sed -e 's/^\([+-~]\)\s\+\(.*\)\s\+will be created/|:white_check_mark: create|\2|/' \
-                -e 's/^\([+-~]\)\s\+\(.*\)\s\+will be destroyed/|:bangbang: destroy|\2|/' \
-                -e 's/^\([+-~]\)\s\+\(.*\)\s\+will be replaced/|:recycle: replace|\2|/' \
-                -e 's/^\([+-~]\)\s\+\(.*\)\s\+must be replaced/|:recycle: replace|\2|/' \
-                -e 's/^\([+-~]\)\s\+\(.*\)\s\+will be updated in-place/|:arrows_counterclockwise: update|\2|/' \
-                -e 's/^\([+-~]\)\s\+\(.*\)\s\+has been tainted/|:warning: tainted|\2|/')
+            # --- MODIFIED SECTION BELOW ---
+            # Extract and format resource changes from 'terraform show' output
+            # This grep now looks for lines starting with an action symbol (+, -, ~, -/+)
+            # followed by the resource_type.resource_name pattern.
+            CHANGES=$(echo "$TERRAFORM_PLAN_OUTPUT" | \
+            grep -E '^\s*([+-~])(?:/)?\s+([a-zA-Z0-9_.-]+\.[a-zA-Z0-9_.-]+)' | \
+            # Then, sed determines the action based on the leading symbol and formats the table row.
+            # \1 in sed refers to the entire matched resource_type.resource_name string from grep.
+            sed -E \
+                -e 's/^\s*\+\s+(.*)/|:white_check_mark: create|\1|/' \
+                -e 's/^\s*-\s+(.*)/|:bangbang: destroy|\1|/' \
+                -e 's/^\s*~\s+(.*)/|:arrows_counterclockwise: update|\1|/' \
+                -e 's/^\s*-\/\+\s+(.*)/|:recycle: replace|\1|/' \
+            )
+            # --- END MODIFIED SECTION ---
 
-            SUMMARY_CONTENT+="$CHANGES\n\n" # Add the extracted changes
+            SUMMARY_CONTENT+="$CHANGES\n\n" # Add the extracted changes, use {} for robust variable expansion
 
             # Print the final plan summary line (e.g., "Plan: X to add, Y to change, Z to destroy.")
             PLAN_SUMMARY_LINE=$(echo "$TERRAFORM_PLAN_OUTPUT" | grep -E '^Plan:|^Changes to Outputs:' | sed -e 's/^/## /')
