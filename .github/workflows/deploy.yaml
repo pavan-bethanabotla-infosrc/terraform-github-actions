@@ -11,7 +11,7 @@ on:
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
 permissions: 
-          
+  contents: write # Required to read/write repository contents
   summary: write # Required for GitHub Actions to read/write workflow summaries
  
 
