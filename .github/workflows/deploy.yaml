@@ -134,6 +134,16 @@ jobs:
           issue-title: "Approve Terraform Apply for ${{ github.ref }}"
           issue-body: "A Terraform plan is ready for review. Click 'Approve' to proceed with apply."
           exclude-workflow-initiator: false
+      
+      - name: Debug has_changes Output (Pre-Apply Check)
+        # This step will run right before the apply.
+        # It's here to definitively show what value is available for the if condition.
+        run: |
+          echo "Value of steps.plan_check.outputs.has_changes directly before apply: '${{ steps.plan_check.outputs.has_changes }}'"
+          # Add a test of the full condition. GitHub Actions evaluates this on the fly.
+          echo "Full apply condition evaluation (should be false if no changes): ${{ github.event_name != 'pull_request' && steps.plan_check.outputs.has_changes == 'true' }}"
+        # Ensure this debug step always runs so we can see its output.
+        if: always()
 
       - name: Terraform Apply
         # Apply only if:
