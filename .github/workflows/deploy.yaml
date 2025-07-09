@@ -52,22 +52,69 @@ jobs:
         run: terraform init
 
       - name: Terraform Plan
-        id: plan
-        run: terraform plan -no-color -out=tfplan # Save the plan
+        id: plan_output_step
+        run: terraform plan -no-color -out=${{ env.PLAN_FILENAME }} # Save the plan
+        
 
       - name: Check Terraform Plan Results
         env:
           PLAN: "${{ steps.plan.outputs.stdout }}" # The full plan output
-        run: |
+        run: 
           # This step helps check if there are actual changes
-          if echo "$PLAN" | grep -q "No changes."; then
+          # Use 'terraform show' to get the human-readable output from the binary plan file
+          PLAN_OUTPUT=$(terraform show -no-color ${{ env.PLAN_FILENAME }})
+
+          if echo "$PLAN_OUTPUT" | grep -q "No changes."; then
             echo "::notice file=main.tf::Terraform plan found no changes. Skipping apply."
-            echo "::set-output name=has_changes::false"
+            echo "::set-output name=has_changes::false" >>  $GITHUB_OUTPUT 
           else
             echo "::notice file=main.tf::Terraform plan found changes. Proceeding with apply."
-            echo "::set-output name=has_changes::true"
+            echo "::set-output name=has_changes::true" >> $GITHUB_OUTPUT
           fi
         id: plan_check
+        # Make sure `terraform show` output is not too large for `PLAN_OUTPUT` var if it's huge.
+        # For most static sites, it will be fine.
+
+
+      - name: Display Terraform Plan Summary (in Job Summary)
+        # This step parses the saved plan file and outputs a markdown summary
+        run: |
+          PLAN_PATH=${{ env.PLAN_FILENAME }} # Path to the binary plan file
+          # Use `terraform show` to get the human-readable output to parse
+          TERRAFORM_PLAN_OUTPUT=$(terraform show -no-color "$PLAN_PATH")
+
+          {
+            # Check for no changes from the 'terraform show' output
+            echo "$TERRAFORM_PLAN_OUTPUT" | grep -q "No changes. Your infrastructure matches the configuration." && {
+              echo "## :white_check_mark: No changes detected."
+              echo "Your infrastructure perfectly matches the Terraform configuration."
+              exit 0
+            }
+            # Fallback for older "no changes" message
+            echo "$TERRAFORM_PLAN_OUTPUT" | grep -q "No changes. No objects need to be destroyed." && {
+              echo "## :white_check_mark: No changes detected."
+              echo "Either you have not created any objects yet or the existing objects were already deleted outside of Terraform."
+              exit 0
+            }
+
+            echo "## :bulb: Terraform Plan Details"
+            echo "| Action | Resource |"
+            echo "|--------|----------|"
+
+            # Extract and format resource changes from 'terraform show' output
+            echo "$TERRAFORM_PLAN_OUTPUT" | grep -E '^\S+ \S+\.\S+ (will be|must be|has been)' | \
+            sed -e 's/^\([+-~]\)\s\+\(.*\)\s\+will be created/|:white_check_mark: create|\2|/' \
+                -e 's/^\([+-~]\)\s\+\(.*\)\s\+will be destroyed/|:bangbang: destroy|\2|/' \
+                -e 's/^\([+-~]\)\s\+\(.*\)\s\+will be replaced/|:recycle: replace|\2|/' \
+                -e 's/^\([+-~]\)\s\+\(.*\)\s\+must be replaced/|:recycle: replace|\2|/' \
+                -e 's/^\([+-~]\)\s\+\(.*\)\s\+will be updated in-place/|:arrows_counterclockwise: update|\2|/' \
+                -e 's/^\([+-~]\)\s\+\(.*\)\s\+has been tainted/|:warning: tainted|\2|/'
+
+            # Print the final plan summary line (e.g., "Plan: X to add, Y to change, Z to destroy.")
+            echo "$TERRAFORM_PLAN_OUTPUT" | grep -E '^Plan:|^Changes to Outputs:' | sed -e 's/^/## /'
+
+          } > plan_summary.md
+          cat plan_summary.md >> $GITHUB_STEP_SUMMARY
 
       # Manual approval (optional, but good for CD)
       - name: Await Manual Approval
@@ -83,4 +130,4 @@ jobs:
 
       - name: Terraform Apply
         if: always() && (github.event_name != 'pull_request' || steps.plan_check.outputs.has_changes == 'true') # Only apply if there were changes or not a PR
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve ${{ env.PLAN_FILENAME }} # Apply the saved plan file
