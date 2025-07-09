@@ -98,9 +98,11 @@ jobs:
 
           # Check for no changes from the 'terraform show' output
           if echo "$TERRAFORM_PLAN_OUTPUT" | grep -q "No changes. Your infrastructure matches the configuration."; then
-            SUMMARY_CONTENT="## :white_check_mark: No changes detected.\nYour infrastructure perfectly matches the Terraform configuration."
+            SUMMARY_CONTENT="## :white_check_mark: No changes detected."
+            SUMMARY_CONTENT="Your infrastructure perfectly matches the Terraform configuration."
           elif echo "$TERRAFORM_PLAN_OUTPUT" | grep -q "No changes. No objects need to be destroyed."; then # Fallback for older message
-            SUMMARY_CONTENT="## :white_check_mark: No changes detected.\nEither you have not created any objects yet or the existing objects were already deleted outside of Terraform."
+            SUMMARY_CONTENT="## :white_check_mark: No changes detected."
+            SUMMARY_CONTENT="Either you have not created any objects yet or the existing objects were already deleted outside of Terraform."
           else
             # If there ARE changes, build the detailed table
             SUMMARY_CONTENT+="## :bulb: Terraform Plan Details\n"
