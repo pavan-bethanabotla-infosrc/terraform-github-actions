@@ -11,9 +11,8 @@ on:
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
 permissions: 
-          id-token: write
-          contents: read
-          summary: write # Required for GitHub Actions to read/write workflow summaries
+          
+  summary: write # Required for GitHub Actions to read/write workflow summaries
  
 
 jobs:
