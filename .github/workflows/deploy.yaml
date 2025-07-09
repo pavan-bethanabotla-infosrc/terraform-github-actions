@@ -138,7 +138,7 @@ jobs:
           # Parameters for actions/github-script itself (like github-token, debug)
           github-token: ${{ secrets.GITHUB_TOKEN }} 
           debug: true # Enable debug logging for this step
-          
+
       # Manual approval (optional, but good for CD)
       - name: Await Manual Approval
         if: github.event_name == 'pull_request' && steps.plan_check.outputs.has_changes == 'true'
