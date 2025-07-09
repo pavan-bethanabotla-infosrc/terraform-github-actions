@@ -15,9 +15,10 @@ on:
 jobs:
   terraform_plan_and_apply:
     runs-on: ubuntu-latest
-    permissions:
-     summary: write # Required for GitHub Actions to update the job summary
-     
+    permissions: 
+      id-token: write
+      contents: read
+      summary: write #
     environment: YOUR_TERRAFORM_CLOUD_WORKSPACE_ENVIRONMENT # Optional: If you use GitHub Environments for approvals
     
     env:
