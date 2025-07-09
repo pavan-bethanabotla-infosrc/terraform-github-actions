@@ -10,9 +10,14 @@ on:
       - main # Trigger on pull requests to the main branch
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
+
+
 jobs:
   terraform_plan_and_apply:
     runs-on: ubuntu-latest
+    permissions:
+     summary: write # Required for GitHub Actions to update the job summary
+     
     environment: YOUR_TERRAFORM_CLOUD_WORKSPACE_ENVIRONMENT # Optional: If you use GitHub Environments for approvals
     
     env:
@@ -122,6 +127,16 @@ jobs:
 
           } > plan_summary.md
           cat plan_summary.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Update Workflow Run Summary with Plan
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('plan_summary.md', 'utf8');
+            core.setSummary(summary);
+            console.log("Workflow Run Summary updated successfully.");
 
       # Manual approval (optional, but good for CD)
       - name: Await Manual Approval
