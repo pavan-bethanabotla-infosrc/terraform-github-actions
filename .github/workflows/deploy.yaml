@@ -113,15 +113,22 @@ jobs:
             # Extract and format resource changes from 'terraform show' output
             # This grep now looks for lines starting with an action symbol (+, -, ~, -/+)
             # followed by the resource_type.resource_name pattern.
+            # and then contain "resource" and the resource type/name in quotes.
+            # Example matches:
+            #   + resource "aws_s3_bucket" "my_bucket" {
+            #   ~ resource "aws_s3_bucket_object" "index" {
+            #   -/+ resource "aws_s3_bucket" "replace_me" {
+
             CHANGES=$(echo "$TERRAFORM_PLAN_OUTPUT" | \
-            grep -E '^\s*([+-~])(?:/)?\s+([a-zA-Z0-9_.-]+\.[a-zA-Z0-9_.-]+)' | \
+            grep -E '^\s*([+-~])(?:/)?\s+resource\s+"([^"]+)"\s+"([^"]+)"' | \
+
             # Then, sed determines the action based on the leading symbol and formats the table row.
-            # \1 in sed refers to the entire matched resource_type.resource_name string from grep.
+            # \1 will be the action symbol (+, -, ~), \2 will be the resource type, \3 will be the resource name.
             sed -E \
-                -e 's/^\s*\+\s+(.*)/|:white_check_mark: create|\1|/' \
-                -e 's/^\s*-\s+(.*)/|:bangbang: destroy|\1|/' \
-                -e 's/^\s*~\s+(.*)/|:arrows_counterclockwise: update|\1|/' \
-                -e 's/^\s*-\/\+\s+(.*)/|:recycle: replace|\1|/' \
+                -e 's/^\s*\+\s+resource\s+"([^"]+)"\s+"([^"]+)"(.*)/|:white_check_mark: create|\1.\2|/' \
+                -e 's/^\s*-\s+resource\s+"([^"]+)"\s+"([^"]+)"(.*)/|:bangbang: destroy|\1.\2|/' \
+                -e 's/^\s*~\s+resource\s+"([^"]+)"\s+"([^"]+)"(.*)/|:arrows_counterclockwise: update|\1.\2|/' \
+                -e 's/^\s*-\/\+\s+resource\s+"([^"]+)"\s+"([^"]+)"(.*)/|:recycle: replace|\1.\2|/' \
             )
             # --- END MODIFIED SECTION ---
 
@@ -134,7 +141,7 @@ jobs:
 
           # Write the collected content to the markdown file
           # IMPORTANT: This creates/overwrites plan_summary.md
-          echo -e "$SUMMARY_CONTENT" > plan_summary.md
+          echo -e "$SUMMARY_CONTENT" > plan_summary.md  # Ensure -e for newlines
 
           # You no longer need to write to GITHUB_STEP_SUMMARY directly here,
           # as the next 'Update Workflow Run Summary with Plan' step will do it.
