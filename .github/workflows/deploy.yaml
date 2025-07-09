@@ -15,10 +15,6 @@ on:
 jobs:
   terraform_plan_and_apply:
     runs-on: ubuntu-latest
-    permissions: 
-      id-token: write
-      contents: read
-      summary: write #
     environment: YOUR_TERRAFORM_CLOUD_WORKSPACE_ENVIRONMENT # Optional: If you use GitHub Environments for approvals
     
     env:
@@ -27,6 +23,11 @@ jobs:
       PLAN_FILENAME: tfplan
       TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       TF_VAR_aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
+    permissions: 
+      id-token: write
+      contents: read
+      summary: write #
     
     steps:
       - name: Checkout code
