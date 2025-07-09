@@ -17,9 +17,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: YOUR_TERRAFORM_CLOUD_WORKSPACE_ENVIRONMENT # Optional: If you use GitHub Environments for approvals
     permissions: 
-      id-token: write
-      contents: read
-      summary: write # Required for GitHub Actions to read/write workflow summaries
+          id-token: write
+          contents: read
+          summary: write # Required for GitHub Actions to read/write workflow summaries
  
     env:
       AWS_EC2_METADATA_DISABLED: true # Disable EC2 metadata service for security reasons
