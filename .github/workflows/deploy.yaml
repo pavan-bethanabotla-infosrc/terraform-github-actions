@@ -133,7 +133,7 @@ jobs:
           script: |
             const fs = require('fs');
             const summary = fs.readFileSync('plan_summary.md', 'utf8');
-            core.setSummary(summary);
+            await core.summary.addRaw(summary).write();
             console.log("Workflow Run Summary updated successfully.");
           # Parameters for actions/github-script itself (like github-token, debug)
           github-token: ${{ secrets.GITHUB_TOKEN }} 
