@@ -65,13 +65,18 @@ jobs:
           # Use 'terraform show' to get the human-readable output from the binary plan file
           PLAN_OUTPUT=$(terraform show -no-color ${{ env.PLAN_FILENAME }})
 
-          # --- Corrected Multi-line if-else-fi structure ---
+          echo "DEBUG: Raw plan output relevant lines for change detection:"
+          echo "$PLAN_OUTPUT" | grep -E "No changes.|Plan: [0-9]+ to add, [0-9]+ to change, [0-9]+ to destroy." || true # print only relevant lines
+          echo "--------------------------------------------------------"
+
           if echo "$PLAN_OUTPUT" | grep -q "No changes."; then
             echo "::notice file=main.tf::Terraform plan found no changes. Skipping apply."
             echo "has_changes=false" >> $GITHUB_OUTPUT # Correct syntax for setting output
+            echo "DEBUG: has_changes set to false" 
           else 
             echo "::notice file=main.tf::Terraform plan found changes. Proceeding with apply."
             echo "has_changes=true" >> $GITHUB_OUTPUT # Correct syntax for setting output
+            echo "DEBUG: has_changes set to true"
           fi 
 
         # Make sure `terraform show` output is not too large for `PLAN_OUTPUT` var if it's huge.
