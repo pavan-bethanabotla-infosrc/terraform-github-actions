@@ -1,0 +1,22 @@
+name: Test Core SetSummary Function
+
+on: [workflow_dispatch] # Run this manually
+
+permissions:
+  summary: write # Required permission
+
+jobs:
+  test_summary_function:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create a dummy file
+        run: echo "## Test Summary" > dummy_summary.md
+
+      - name: Run github-script to set summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const dummyContent = fs.readFileSync('dummy_summary.md', 'utf8');
+            core.setSummary(dummyContent);
+            console.log("core.setSummary called successfully.");
