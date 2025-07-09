@@ -18,6 +18,7 @@ jobs:
     env:
       AWS_EC2_METADATA_DISABLED: true # Disable EC2 metadata service for security reasons
       # Pass GitHub Secrets to Terraform variables using TF_VAR_ prefix
+      PLAN_FILENAME: tfplan
       TF_VAR_aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       TF_VAR_aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     
@@ -57,8 +58,11 @@ jobs:
         
 
       - name: Check Terraform Plan Results
-        env:
-          PLAN: "${{ steps.plan.outputs.stdout }}" # The full plan output
+        id: plan_check
+        # This step checks the plan output to see if there are any changes
+
+        #env:
+        #  PLAN: "${{ steps.plan.outputs.stdout }}" # The full plan output
         run: 
           # This step helps check if there are actual changes
           # Use 'terraform show' to get the human-readable output from the binary plan file
@@ -66,12 +70,12 @@ jobs:
 
           if echo "$PLAN_OUTPUT" | grep -q "No changes."; then
             echo "::notice file=main.tf::Terraform plan found no changes. Skipping apply."
-            echo "::set-output name=has_changes::false" >>  $GITHUB_OUTPUT 
+            echo "has_changes=false" >>  $GITHUB_OUTPUT 
           else
             echo "::notice file=main.tf::Terraform plan found changes. Proceeding with apply."
-            echo "::set-output name=has_changes::true" >> $GITHUB_OUTPUT
+            echo "has_changes=true" >> $GITHUB_OUTPUT
           fi
-        id: plan_check
+        
         # Make sure `terraform show` output is not too large for `PLAN_OUTPUT` var if it's huge.
         # For most static sites, it will be fine.
 
